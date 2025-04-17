@@ -386,6 +386,26 @@ public class PackageInfo implements Parcelable {
     @Nullable
     public String compileSdkVersionCodename;
 
+    /**
+     * Flag for use with {@link #overlayFlags}. Marks the overlay as static, meaning it cannot
+     * be enabled/disabled at runtime.
+     * @hide
+     */
+    public static final int FLAG_OVERLAY_STATIC = 1 << 1;
+
+    /**
+     * Flag for use with {@link #overlayFlags}. Marks the overlay as trusted (not 3rd party).
+     * @hide
+     */
+    public static final int FLAG_OVERLAY_TRUSTED = 1 << 2;
+
+    /**
+     * Modifiers that affect the state of this overlay. See {@link #FLAG_OVERLAY_STATIC},
+     * {@link #FLAG_OVERLAY_TRUSTED}.
+     * @hide
+     */
+    public int overlayFlags;
+
     public PackageInfo() {
     }
 
@@ -458,6 +478,7 @@ public class PackageInfo implements Parcelable {
         dest.writeString(requiredAccountType);
         dest.writeString(overlayTarget);
         dest.writeString(overlayCategory);
+        dest.writeInt(overlayFlags);
         dest.writeInt(overlayPriority);
         dest.writeBoolean(mOverlayIsStatic);
         dest.writeInt(compileSdkVersion);
@@ -521,6 +542,7 @@ public class PackageInfo implements Parcelable {
         overlayTarget = source.readString();
         overlayCategory = source.readString();
         overlayPriority = source.readInt();
+                overlayFlags = source.readInt();
         mOverlayIsStatic = source.readBoolean();
         compileSdkVersion = source.readInt();
         compileSdkVersionCodename = source.readString();

@@ -4,9 +4,13 @@ cc_defaults {
         "hwui_static_deps",
         "skia_deps",
         //"hwui_bugreport_font_cache_usage",
+<<<<<<< HEAD
         //"hwui_compile_for_perf",
         "hwui_pgo",
         "hwui_lto",
+=======
+        "hwui_compile_for_perf",
+>>>>>>> origin/aosp-9.0-dev
     ],
 
     cpp_std: "c++17",
@@ -82,12 +86,18 @@ cc_defaults {
 
 cc_defaults {
     name: "hwui_compile_for_perf",
-    // TODO: Non-arm?
     cflags: [
         "-fno-omit-frame-pointer",
-        "-marm",
-        "-mapcs",
     ],
+
+    arch: {
+        arm: {
+            cflags: ["-marm"],
+        },
+        arm64: {
+            cflags: ["-marm"],
+        },
+    },
 }
 
 cc_defaults {
@@ -287,8 +297,13 @@ cc_library {
         // Enables fine-grained GLES error checking
         // If enabled, every GLES call is wrapped & error checked
         // Has moderate overhead
+<<<<<<< HEAD
         "hwui_enable_opengl_validation",
     ],
+=======
+        //"hwui_enable_opengl_validation",
+],
+>>>>>>> origin/aosp-9.0-dev
 }
 
 // ------------------------

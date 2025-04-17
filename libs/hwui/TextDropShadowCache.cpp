@@ -93,7 +93,7 @@ int ShadowText::compare(const ShadowText& lhs, const ShadowText& rhs) {
 ///////////////////////////////////////////////////////////////////////////////
 
 TextDropShadowCache::TextDropShadowCache()
-        : TextDropShadowCache(DeviceInfo::multiplyByResolution(2)) {}
+        : TextDropShadowCache(Properties::textDropShadowCacheSize) {}
 
 TextDropShadowCache::TextDropShadowCache(uint32_t maxByteSize)
         : mCache(LruCache<ShadowText, ShadowTexture*>::kUnlimitedCapacity)

@@ -108,6 +108,11 @@ final class OverlayManagerServiceImpl {
         mListener = listener;
     }
 
+    private static boolean isPackageStaticOverlay(final PackageInfo packageInfo) {
+        return packageInfo.overlayTarget != null
+                && (packageInfo.overlayFlags & PackageInfo.FLAG_OVERLAY_STATIC) != 0;
+    }
+
     /**
      * Call this to synchronize the Settings for a user with what PackageManager knows about a user.
      * Returns a list of target packages that must refresh their overlays. This list is the union
@@ -153,6 +158,24 @@ final class OverlayManagerServiceImpl {
                         overlayPackage.isStaticOverlayPackage(),
                         overlayPackage.overlayPriority,
                         overlayPackage.overlayCategory);
+                        isPackageStaticOverlay(overlayPackage), overlayPackage.overlayPriority);
+
+                if (oi == null) {
+                    // This overlay does not exist in our settings.
+                    if (isPackageStaticOverlay(overlayPackage) ||
+                            mDefaultOverlays.contains(overlayPackage.packageName)) {
+                        // Enable this overlay by default.
+                        if (DEBUG) {
+                            Slog.d(TAG, "Enabling overlay " + overlayPackage.packageName
+                                    + " for user " + newUserId + " by default");
+                        }
+                        mSettings.setEnabled(overlayPackage.packageName, newUserId, true);
+                    }
+                } else {
+                    // The targetPackageName we have stored doesn't match the overlay's target.
+                    // Queue the old target for an update as well.
+                    packagesToUpdateAssets.add(oi.targetPackageName);
+                }
             }
 
             storedOverlayInfos.remove(overlayPackage.packageName);
@@ -332,8 +355,12 @@ final class OverlayManagerServiceImpl {
 
         mSettings.init(packageName, userId, overlayPackage.overlayTarget,
                 overlayPackage.applicationInfo.getBaseCodePath(),
+<<<<<<< HEAD
                 overlayPackage.isStaticOverlayPackage(), overlayPackage.overlayPriority,
                 overlayPackage.overlayCategory);
+=======
+                isPackageStaticOverlay(overlayPackage), overlayPackage.overlayPriority);
+>>>>>>> origin/aosp-9.0-dev
         try {
             if (updateState(overlayPackage.overlayTarget, packageName, userId, 0)) {
                 mListener.onOverlaysChanged(overlayPackage.overlayTarget, userId);
@@ -453,7 +480,11 @@ final class OverlayManagerServiceImpl {
         }
 
         // Ignore static overlays.
+<<<<<<< HEAD
         if (overlayPackage.isStaticOverlayPackage()) {
+=======
+        if (isPackageStaticOverlay(overlayPackage)) {
+>>>>>>> origin/aosp-9.0-dev
             return false;
         }
 
@@ -502,7 +533,11 @@ final class OverlayManagerServiceImpl {
                     continue;
                 }
 
+<<<<<<< HEAD
                 if (disabledOverlayPackageInfo.isStaticOverlayPackage()) {
+=======
+                if (isPackageStaticOverlay(disabledOverlayPackageInfo)) {
+>>>>>>> origin/aosp-9.0-dev
                     // Don't touch static overlays.
                     continue;
                 }
@@ -532,7 +567,11 @@ final class OverlayManagerServiceImpl {
 
     private boolean isPackageUpdatableOverlay(@NonNull final String packageName, final int userId) {
         final PackageInfo overlayPackage = mPackageManager.getPackageInfo(packageName, userId);
+<<<<<<< HEAD
         if (overlayPackage == null || overlayPackage.isStaticOverlayPackage()) {
+=======
+        if (overlayPackage == null || isPackageStaticOverlay(overlayPackage)) {
+>>>>>>> origin/aosp-9.0-dev
             return false;
         }
         return true;
@@ -632,9 +671,15 @@ final class OverlayManagerServiceImpl {
                 userId);
 
         // Static RROs targeting to "android", ie framework-res.apk, are handled by native layers.
+<<<<<<< HEAD
         if (targetPackage != null && overlayPackage != null &&
                 !("android".equals(targetPackageName)
                         && overlayPackage.isStaticOverlayPackage())) {
+=======
+        if (targetPackage != null &&
+                !("android".equals(targetPackage.packageName)
+                        && isPackageStaticOverlay(overlayPackage))) {
+>>>>>>> origin/aosp-9.0-dev
             mIdmapManager.createIdmap(targetPackage, overlayPackage, userId);
         }
 

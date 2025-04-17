@@ -27,7 +27,12 @@ namespace uirenderer {
 // Constructors/destructor
 ///////////////////////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 FboCache::FboCache() : mMaxSize(0) {}
+=======
+FboCache::FboCache()
+        : mMaxSize(Properties::fboCacheSize) {}
+>>>>>>> origin/aosp-9.0-dev
 
 FboCache::~FboCache() {
     clear();

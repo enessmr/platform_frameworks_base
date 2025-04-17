@@ -123,6 +123,11 @@ void EglManager::initialize() {
         }
     }
 
+    ALOGD("Properties::enablePartialUpdates %d", static_cast<int>(Properties::enablePartialUpdates));
+    ALOGD("Properties::useBufferAge %d", static_cast<int>(Properties::useBufferAge));
+    ALOGD("Default swap behavior %d", static_cast<int>(mSwapBehavior));
+    mSwapBehavior = SwapBehavior::Discard;
+
     loadConfigs();
     createContext();
     createPBufferSurface();

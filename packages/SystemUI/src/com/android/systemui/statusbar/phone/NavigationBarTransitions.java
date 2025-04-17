@@ -96,8 +96,13 @@ public final class NavigationBarTransitions extends BarTransitions {
 
     @Override
     protected boolean isLightsOut(int mode) {
+<<<<<<< HEAD
         return super.isLightsOut(mode) || (mAllowAutoDimWallpaperNotVisible && mAutoDim
                 && !mWallpaperVisible && mode != MODE_WARNING);
+=======
+        return super.isLightsOut(mode) || (mAutoDim && !mWallpaperVisible
+                && mode != MODE_WARNING);
+>>>>>>> origin/aosp-9.0-dev
     }
 
     public LightBarTransitionsController getLightTransitionsController() {
@@ -151,7 +156,10 @@ public final class NavigationBarTransitions extends BarTransitions {
         if (mAutoDim) {
             applyLightsOut(false, true);
         }
+<<<<<<< HEAD
         mView.onDarkIntensityChange(darkIntensity);
+=======
+>>>>>>> origin/aosp-9.0-dev
     }
 
     private final View.OnTouchListener mLightsOutListener = new View.OnTouchListener() {

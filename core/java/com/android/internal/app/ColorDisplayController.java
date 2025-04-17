@@ -59,6 +59,10 @@ public final class ColorDisplayController {
     @IntDef({ AUTO_MODE_DISABLED, AUTO_MODE_CUSTOM, AUTO_MODE_TWILIGHT })
     public @interface AutoMode {}
 
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({ COLOR_MODE_NATURAL, COLOR_MODE_BOOSTED, COLOR_MODE_SATURATED })
+    public @interface ColorMode {}
+
     /**
      * Auto mode value to prevent Night display from being automatically activated. It can still
      * be activated manually via {@link #setActivated(boolean)}.
@@ -446,6 +450,37 @@ public final class ColorDisplayController {
     }
 
     /**
+     * Get the current color mode.
+     */
+    public int getColorMode() {
+        final int colorMode = System.getIntForUser(mContext.getContentResolver(),
+            System.DISPLAY_COLOR_MODE, -1, mUserId);
+        if (colorMode < COLOR_MODE_NATURAL || colorMode > COLOR_MODE_SATURATED) {
+            // There still might be a legacy system property controlling color mode that we need to
+            // respect.
+            if ("1".equals(SystemProperties.get(PERSISTENT_PROPERTY_NATIVE_MODE))) {
+                return COLOR_MODE_SATURATED;
+            }
+            return "1.0".equals(SystemProperties.get(PERSISTENT_PROPERTY_SATURATION))
+                    ? COLOR_MODE_NATURAL : COLOR_MODE_BOOSTED;
+        }
+        return colorMode;
+    }
+
+    /**
+     * Set the current color mode.
+     *
+     * @param colorMode the color mode
+     */
+    public void setColorMode(@ColorMode int colorMode) {
+        if (colorMode < COLOR_MODE_NATURAL || colorMode > COLOR_MODE_SATURATED) {
+            return;
+        }
+        System.putIntForUser(mContext.getContentResolver(), System.DISPLAY_COLOR_MODE, colorMode,
+                mUserId);
+    }
+
+    /**
      * Returns the minimum allowed color temperature (in Kelvin) to tint the display when activated.
      */
     public int getMinimumColorTemperature() {
@@ -540,12 +575,15 @@ public final class ColorDisplayController {
                         false /* notifyForDescendants */, mContentObserver, mUserId);
                 cr.registerContentObserver(System.getUriFor(System.DISPLAY_COLOR_MODE),
                         false /* notifyForDecendants */, mContentObserver, mUserId);
+<<<<<<< HEAD:core/java/com/android/internal/app/ColorDisplayController.java
                 cr.registerContentObserver(
                         Secure.getUriFor(Secure.ACCESSIBILITY_DISPLAY_INVERSION_ENABLED),
                         false /* notifyForDecendants */, mContentObserver, mUserId);
                 cr.registerContentObserver(
                         Secure.getUriFor(Secure.ACCESSIBILITY_DISPLAY_DALTONIZER_ENABLED),
                         false /* notifyForDecendants */, mContentObserver, mUserId);
+=======
+>>>>>>> origin/aosp-9.0-dev:core/java/com/android/internal/app/NightDisplayController.java
             }
         }
     }
@@ -606,6 +644,7 @@ public final class ColorDisplayController {
          * @param displayColorMode the color mode
          */
         default void onDisplayColorModeChanged(int displayColorMode) {}
+<<<<<<< HEAD:core/java/com/android/internal/app/ColorDisplayController.java
 
         /**
          * Callback invoked when Accessibility color transforms change.
@@ -613,5 +652,7 @@ public final class ColorDisplayController {
          * @param state the state Accessibility color transforms (true of active)
          */
         default void onAccessibilityTransformChanged(boolean state) {}
+=======
+>>>>>>> origin/aosp-9.0-dev:core/java/com/android/internal/app/NightDisplayController.java
     }
 }

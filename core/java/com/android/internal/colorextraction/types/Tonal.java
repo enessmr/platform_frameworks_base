@@ -55,6 +55,8 @@ public class Tonal implements ExtractionType {
     public static final int MAIN_COLOR_LIGHT = 0xffe0e0e0;
     public static final int THRESHOLD_COLOR_DARK = 0xff212121;
     public static final int MAIN_COLOR_DARK = 0xff000000;
+    public static final int SECONDARY_COLOR_LIGHT = 0xff9e9e9e;
+    public static final int SECONDARY_COLOR_DARK = 0xff000000;
 
     private final TonalPalette mGreyPalette;
     private final ArrayList<TonalPalette> mTonalPalettes;

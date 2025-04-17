@@ -841,7 +841,23 @@ public class ResourcesImpl {
             } finally {
                 stack.pop();
             }
-        } catch (Exception | StackOverflowError e) {
+            stack.push(id);
+            try {
+                if (file.endsWith(".xml")) {
+                    final XmlResourceParser rp = loadXmlResourceParser(
+                            file, id, value.assetCookie, "drawable");
+                    dr = Drawable.createFromXmlForDensity(wrapper, rp, density, theme);
+                    rp.close();
+                } else {
+                    final InputStream is = mAssets.openNonAsset(
+                            value.assetCookie, file, AssetManager.ACCESS_STREAMING);
+                    dr = Drawable.createFromResourceStream(wrapper, value, is, file, null);
+                    is.close();
+                }
+            } finally {
+                stack.pop();
+            }
+        } catch (Exception e) {
             Trace.traceEnd(Trace.TRACE_TAG_RESOURCES);
             final NotFoundException rnf = new NotFoundException(
                     "File " + file + " from drawable resource ID #0x" + Integer.toHexString(id));

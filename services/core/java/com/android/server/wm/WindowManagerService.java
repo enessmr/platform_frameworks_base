@@ -7521,7 +7521,7 @@ public class WindowManagerService extends IWindowManager.Stub
 
     boolean hasWideColorGamutSupport() {
         return mHasWideColorGamutSupport &&
-                SystemProperties.getInt("persist.sys.sf.native_mode", 0) != 1;
+                !SystemProperties.getBoolean("persist.sys.sf.native_mode", false);
     }
 
     void updateNonSystemOverlayWindowsVisibilityIfNeeded(WindowState win, boolean surfaceShown) {

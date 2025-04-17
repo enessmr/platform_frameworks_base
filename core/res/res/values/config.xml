@@ -1650,6 +1650,8 @@
     <string-array name="config_locationProviderPackageNames" translatable="false">
         <!-- The standard AOSP fused location provider -->
         <item>com.android.location.fused</item>
+        <!-- The (faked) microg fused location provider -->
+        <item>com.google.android.gms</item>
     </string-array>
 
     <!-- This string array can be overriden to enable test location providers initially. -->
@@ -3387,6 +3389,7 @@
     <integer name="config_stableDeviceDisplayWidth">-1</integer>
     <integer name="config_stableDeviceDisplayHeight">-1</integer>
 
+<<<<<<< HEAD
     <!-- Decide whether to display 'No service' on status bar instead of 'Emergency calls only'
          when SIM is unready. -->
     <bool name="config_display_no_service_when_sim_unready">false</bool>
@@ -3446,5 +3449,14 @@
 
     <!-- Whether or not swipe up gesture's opt-in setting is available on this device -->
     <bool name="config_swipe_up_gesture_setting_available">false</bool>
+=======
+    <!-- The list of components which should be automatically disabled. -->
+    <string-array name="config_disabledComponents" translatable="false">
+    </string-array>
+
+    <!-- The list of components which should be forced to be enabled. -->
+    <string-array name="config_forceEnabledComponents" translatable="false">
+    </string-array>
+>>>>>>> origin/aosp-9.0-dev
 
 </resources>

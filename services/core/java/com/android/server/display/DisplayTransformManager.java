@@ -17,6 +17,7 @@
 package com.android.server.display;
 
 import android.app.ActivityManager;
+import android.app.IActivityManager;
 import android.opengl.Matrix;
 import android.os.IBinder;
 import android.os.Parcel;
@@ -96,7 +97,16 @@ public class DisplayTransformManager {
     @GuardedBy("mDaltonizerModeLock")
     private int mDaltonizerMode = -1;
 
+    private IBinder mSurfaceFlinger;
+
     /* package */ DisplayTransformManager() {
+    }
+
+    public IBinder getSurfaceFlinger() {
+        if (mSurfaceFlinger == null) {
+            mSurfaceFlinger = ServiceManager.getService("SurfaceFlinger");
+        }
+        return mSurfaceFlinger;
     }
 
     /**
@@ -230,6 +240,7 @@ public class DisplayTransformManager {
         }
     }
 
+<<<<<<< HEAD
     /**
      * Return true when the color matrix works in linear space.
      */
@@ -261,6 +272,23 @@ public class DisplayTransformManager {
             setDisplayColor(DISPLAY_COLOR_ENHANCED);
         }
         setColorMatrix(LEVEL_COLOR_MATRIX_NIGHT_DISPLAY, nightDisplayMatrix);
+=======
+    public static boolean isNativeModeEnabled() {
+        return SystemProperties.getBoolean(PERSISTENT_PROPERTY_NATIVE_MODE, false);
+    }
+
+    public boolean setColorMode(int colorMode) {
+        if (colorMode == NightDisplayController.COLOR_MODE_NATURAL) {
+            applySaturation(COLOR_SATURATION_NATURAL);
+            setNativeMode(false);
+        } else if (colorMode == NightDisplayController.COLOR_MODE_BOOSTED) {
+            applySaturation(COLOR_SATURATION_BOOSTED);
+            setNativeMode(false);
+        } else if (colorMode == NightDisplayController.COLOR_MODE_SATURATED) {
+            applySaturation(COLOR_SATURATION_NATURAL);
+            setNativeMode(true);
+        }
+>>>>>>> origin/aosp-9.0-dev
 
         updateConfiguration();
 
@@ -272,13 +300,21 @@ public class DisplayTransformManager {
      */
     private void applySaturation(float saturation) {
         SystemProperties.set(PERSISTENT_PROPERTY_SATURATION, Float.toString(saturation));
+<<<<<<< HEAD
         final IBinder flinger = ServiceManager.getService(SURFACE_FLINGER);
         if (flinger != null) {
+=======
+        if (getSurfaceFlinger() != null) {
+>>>>>>> origin/aosp-9.0-dev
             final Parcel data = Parcel.obtain();
             data.writeInterfaceToken("android.ui.ISurfaceComposer");
             data.writeFloat(saturation);
             try {
+<<<<<<< HEAD
                 flinger.transact(SURFACE_FLINGER_TRANSACTION_SATURATION, data, null, 0);
+=======
+                getSurfaceFlinger().transact(SURFACE_FLINGER_TRANSACTION_SATURATION, data, null, 0);
+>>>>>>> origin/aosp-9.0-dev
             } catch (RemoteException ex) {
                 Log.e(TAG, "Failed to set saturation", ex);
             } finally {
@@ -290,6 +326,7 @@ public class DisplayTransformManager {
     /**
      * Toggles native mode on/off in SurfaceFlinger.
      */
+<<<<<<< HEAD
     private void setDisplayColor(int color) {
         SystemProperties.set(PERSISTENT_PROPERTY_DISPLAY_COLOR, Integer.toString(color));
         final IBinder flinger = ServiceManager.getService(SURFACE_FLINGER);
@@ -301,13 +338,29 @@ public class DisplayTransformManager {
                 flinger.transact(SURFACE_FLINGER_TRANSACTION_DISPLAY_COLOR, data, null, 0);
             } catch (RemoteException ex) {
                 Log.e(TAG, "Failed to set display color", ex);
+=======
+    private void setNativeMode(boolean enabled) {
+        SystemProperties.set(PERSISTENT_PROPERTY_NATIVE_MODE, enabled ? "1" : "0");
+        if (getSurfaceFlinger() != null) {
+            final Parcel data = Parcel.obtain();
+            data.writeInterfaceToken("android.ui.ISurfaceComposer");
+            data.writeInt(enabled ? 1 : 0);
+            try {
+                getSurfaceFlinger().transact(SURFACE_FLINGER_TRANSACTION_NATIVE_MODE, data, null, 0);
+            } catch (RemoteException ex) {
+                Log.e(TAG, "Failed to set native mode", ex);
+>>>>>>> origin/aosp-9.0-dev
             } finally {
                 data.recycle();
             }
         }
     }
 
+<<<<<<< HEAD
     private void updateConfiguration() {
+=======
+    void updateConfiguration() {
+>>>>>>> origin/aosp-9.0-dev
         try {
             ActivityManager.getService().updateConfiguration(null);
         } catch (RemoteException e) {

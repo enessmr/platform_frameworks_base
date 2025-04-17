@@ -2150,6 +2150,9 @@ final class Session implements RemoteFillService.FillServiceCallbacks, ViewState
 
                 addTaggedDataToRequestLogLocked(response.getRequestId(),
                         MetricsEvent.FIELD_AUTOFILL_DURATION, duration);
+                final LogMaker metricsLog = newLogMaker(MetricsEvent.AUTOFILL_UI_LATENCY)
+                        .addTaggedData(MetricsEvent.FIELD_AUTOFILL_DURATION, duration);
+                mMetricsLogger.write(metricsLog);
             }
         }
     }

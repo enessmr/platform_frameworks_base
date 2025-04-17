@@ -1184,6 +1184,19 @@ public final class ActiveServices {
                         mAm.enforcePermission(
                                 android.Manifest.permission.INSTANT_APP_FOREGROUND_SERVICE,
                                 r.app.pid, r.appInfo.uid, "startForeground");
+                        try {
+                            if (AppGlobals.getPackageManager().checkPermission(
+                                    android.Manifest.permission.INSTANT_APP_FOREGROUND_SERVICE,
+                                    r.appInfo.packageName, UserHandle.getUserId(r.appInfo.uid))
+                                            != PackageManager.PERMISSION_GRANTED) {
+                                throw new SecurityException("Instant app " + r.appInfo.packageName
+                                        + " does not have permission to create foreground"
+                                        + "services");
+                            }
+                        } catch (RemoteException e) {
+                            throw new SecurityException("Failed to check instant app permission." ,
+                                    e);
+                        }
                 }
             } else if (r.appInfo.targetSdkVersion >= Build.VERSION_CODES.P) {
                 mAm.enforcePermission(

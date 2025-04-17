@@ -4848,7 +4848,10 @@ status_t ResourceTable::modifyForCompat(const Bundle* bundle,
     const String16 pathInterpolator16("pathInterpolator");
     const String16 objectAnimator16("objectAnimator");
     const String16 gradient16("gradient");
+<<<<<<< HEAD
     const String16 animatedSelector16("animated-selector");
+=======
+>>>>>>> origin/aosp-9.0-dev
 
     const int minSdk = getMinSdkVersion(bundle);
     if (minSdk >= SDK_LOLLIPOP_MR1) {

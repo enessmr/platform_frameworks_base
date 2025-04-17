@@ -98,7 +98,25 @@ class ActivityMetricsLogger {
             new SparseArray<>();
     private final SparseArray<WindowingModeTransitionInfo> mLastWindowingModeTransitionInfo =
             new SparseArray<>();
+    private final SparseArray<StackTransitionInfo> mStackTransitionInfo = new SparseArray<>();
+    private final SparseArray<StackTransitionInfo> mLastStackTransitionInfo = new SparseArray<>();
     private final H mHandler;
+    private final class H extends Handler {
+
+        public H(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_CHECK_VISIBILITY:
+                    final SomeArgs args = (SomeArgs) msg.obj;
+                    checkVisibility((TaskRecord) args.arg1, (ActivityRecord) args.arg2);
+                    break;
+            }
+        }
+    };
 
     private ArtManagerInternal mArtManagerInternal;
 
@@ -131,6 +149,7 @@ class ActivityMetricsLogger {
         private boolean loggedStartingWindowDrawn;
     }
 
+<<<<<<< HEAD
     private final class WindowingModeTransitionInfoSnapshot {
         final private ApplicationInfo applicationInfo;
         final private ProcessRecord processRecord;
@@ -165,6 +184,8 @@ class ActivityMetricsLogger {
         }
     }
 
+=======
+>>>>>>> origin/aosp-9.0-dev
     ActivityMetricsLogger(ActivityStackSupervisor supervisor, Context context, Looper looper) {
         mLastLogTimeSecs = SystemClock.elapsedRealtime() / 1000;
         mSupervisor = supervisor;
@@ -312,7 +333,11 @@ class ActivityMetricsLogger {
 
         if (DEBUG_METRICS) Slog.i(TAG, "notifyActivityLaunched successful");
 
+<<<<<<< HEAD
         final WindowingModeTransitionInfo newInfo = new WindowingModeTransitionInfo();
+=======
+        final StackTransitionInfo newInfo = new StackTransitionInfo();
+>>>>>>> origin/aosp-9.0-dev
         newInfo.launchedActivity = launchedActivity;
         newInfo.currentTransitionProcessRunning = processRunning;
         newInfo.startResult = resultCode;
@@ -332,10 +357,17 @@ class ActivityMetricsLogger {
     /**
      * Notifies the tracker that all windows of the app have been drawn.
      */
+<<<<<<< HEAD
     void notifyWindowsDrawn(int windowingMode, long timestamp) {
         if (DEBUG_METRICS) Slog.i(TAG, "notifyWindowsDrawn windowingMode=" + windowingMode);
 
         final WindowingModeTransitionInfo info = mWindowingModeTransitionInfo.get(windowingMode);
+=======
+    void notifyWindowsDrawn(int stackId, long timestamp) {
+        if (DEBUG_METRICS) Slog.i(TAG, "notifyWindowsDrawn stackId=" + stackId);
+
+        final StackTransitionInfo info = mStackTransitionInfo.get(stackId);
+>>>>>>> origin/aosp-9.0-dev
         if (info == null || info.loggedWindowsDrawn) {
             return;
         }
@@ -391,8 +423,12 @@ class ActivityMetricsLogger {
      * @param activityRecord the app that is changing its visibility
      */
     void notifyVisibilityChanged(ActivityRecord activityRecord) {
+<<<<<<< HEAD
         final WindowingModeTransitionInfo info = mWindowingModeTransitionInfo.get(
                 activityRecord.getWindowingMode());
+=======
+        final StackTransitionInfo info = mStackTransitionInfo.get(activityRecord.getStackId());
+>>>>>>> origin/aosp-9.0-dev
         if (info == null) {
             return;
         }
@@ -409,8 +445,12 @@ class ActivityMetricsLogger {
     private void checkVisibility(TaskRecord t, ActivityRecord r) {
         synchronized (mSupervisor.mService) {
 
+<<<<<<< HEAD
             final WindowingModeTransitionInfo info = mWindowingModeTransitionInfo.get(
                     r.getWindowingMode());
+=======
+            final StackTransitionInfo info = mStackTransitionInfo.get(r.getStackId());
+>>>>>>> origin/aosp-9.0-dev
 
             // If we have an active transition that's waiting on a certain activity that will be
             // invisible now, we'll never get onWindowsDrawn, so abort the transition if necessary.
@@ -418,8 +458,13 @@ class ActivityMetricsLogger {
                 if (DEBUG_METRICS) Slog.i(TAG, "notifyVisibilityChanged to invisible"
                         + " activity=" + r);
                 logAppTransitionCancel(info);
+<<<<<<< HEAD
                 mWindowingModeTransitionInfo.remove(r.getWindowingMode());
                 if (mWindowingModeTransitionInfo.size() == 0) {
+=======
+                mStackTransitionInfo.remove(r.getStackId());
+                if (mStackTransitionInfo.size() == 0) {
+>>>>>>> origin/aosp-9.0-dev
                     reset(true /* abort */);
                 }
             }
@@ -478,7 +523,11 @@ class ActivityMetricsLogger {
         return (int) (timestamp - mCurrentTransitionStartTime);
     }
 
+<<<<<<< HEAD
     private void logAppTransitionCancel(WindowingModeTransitionInfo info) {
+=======
+    private void logAppTransitionCancel(StackTransitionInfo info) {
+>>>>>>> origin/aosp-9.0-dev
         final int type = getTransitionType(info);
         if (type == -1) {
             return;
@@ -488,18 +537,26 @@ class ActivityMetricsLogger {
         builder.setType(type);
         builder.addTaggedData(FIELD_CLASS_NAME, info.launchedActivity.info.name);
         mMetricsLogger.write(builder);
+<<<<<<< HEAD
         StatsLog.write(
                 StatsLog.APP_START_CANCELED,
                 info.launchedActivity.appInfo.uid,
                 info.launchedActivity.packageName,
                 convertAppStartTransitionType(type),
                 info.launchedActivity.info.name);
+=======
+>>>>>>> origin/aosp-9.0-dev
     }
 
     private void logAppTransitionMultiEvents() {
         if (DEBUG_METRICS) Slog.i(TAG, "logging transition events");
+<<<<<<< HEAD
         for (int index = mWindowingModeTransitionInfo.size() - 1; index >= 0; index--) {
             final WindowingModeTransitionInfo info = mWindowingModeTransitionInfo.valueAt(index);
+=======
+        for (int index = mStackTransitionInfo.size() - 1; index >= 0; index--) {
+            final StackTransitionInfo info = mStackTransitionInfo.valueAt(index);
+>>>>>>> origin/aosp-9.0-dev
             final int type = getTransitionType(info);
             if (type == -1) {
                 return;

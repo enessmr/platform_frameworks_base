@@ -73,6 +73,8 @@ message DiskStatsCachedValuesProto {
     // Sizes of individual packages
     repeated DiskStatsAppSizesProto app_sizes = 9;
     // Total app data size, in kilobytes
+    int64 agg_apps_data_size = 10;
+    // Total app data size, in kilobytes
     optional int64 agg_apps_data_size_kb = 10;
 }
 

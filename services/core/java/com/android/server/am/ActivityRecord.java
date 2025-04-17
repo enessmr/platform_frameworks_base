@@ -940,10 +940,19 @@ final class ActivityRecord extends ConfigurationContainer implements AppWindowCo
                 realTheme, com.android.internal.R.styleable.Window, userId);
 
         if (ent != null) {
-            fullscreen = !ActivityInfo.isTranslucentOrFloating(ent.array);
-            hasWallpaper = ent.array.getBoolean(R.styleable.Window_windowShowWallpaper, false);
-            noDisplay = ent.array.getBoolean(R.styleable.Window_windowNoDisplay, false);
+        final boolean translucent = ent != null && (ent.array.getBoolean(
+                com.android.internal.R.styleable.Window_windowIsTranslucent, false)
+                || (!ent.array.hasValue(
+                        com.android.internal.R.styleable.Window_windowIsTranslucent)
+                        && ent.array.getBoolean(
+                                com.android.internal.R.styleable.Window_windowSwipeToDismiss,
+                                        false)));
+        fullscreen = ent != null && !ent.array.getBoolean(
+                com.android.internal.R.styleable.Window_windowIsFloating, false) && !translucent;
+        noDisplay = ent != null && ent.array.getBoolean(
+                com.android.internal.R.styleable.Window_windowNoDisplay, false);
         } else {
+            fullscreen = false;
             hasWallpaper = false;
             noDisplay = false;
         }
@@ -1627,7 +1636,11 @@ final class ActivityRecord extends ConfigurationContainer implements AppWindowCo
 
     void setVisibility(boolean visible) {
         mWindowContainerController.setVisibility(visible, mDeferHidingClient);
+<<<<<<< HEAD
         mStackSupervisor.getActivityMetricsLogger().notifyVisibilityChanged(this);
+=======
+        mStackSupervisor.mActivityMetricsLogger.notifyVisibilityChanged(this);
+>>>>>>> origin/aosp-9.0-dev
     }
 
     // TODO: Look into merging with #setVisibility()

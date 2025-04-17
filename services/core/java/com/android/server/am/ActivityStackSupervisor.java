@@ -4823,11 +4823,25 @@ public class ActivityStackSupervisor extends ConfigurationContainer implements D
                 sendPowerHintForLaunchStartIfNeeded(true /* forceSend */, targetActivity);
                 mActivityMetricsLogger.notifyActivityLaunching();
                 try {
+<<<<<<< HEAD
                     mService.moveTaskToFrontLocked(task.taskId, 0, options,
+=======
+                    mService.moveTaskToFrontLocked(task.taskId, 0, bOptions,
+>>>>>>> origin/aosp-9.0-dev
                             true /* fromRecents */);
                 } finally {
                     mActivityMetricsLogger.notifyActivityLaunched(START_TASK_TO_FRONT,
                             targetActivity);
+<<<<<<< HEAD
+=======
+                }
+
+                // If we are launching the task in the docked stack, put it into resizing mode so
+                // the window renders full-screen with the background filling the void. Also only
+                // call this at the end to make sure that tasks exists on the window manager side.
+                if (launchStackId == DOCKED_STACK_ID) {
+                    setResizingDuringAnimation(task);
+>>>>>>> origin/aosp-9.0-dev
                 }
 
                 mService.getActivityStartController().postStartActivityProcessingForLastStarter(

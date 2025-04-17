@@ -35,7 +35,11 @@ import java.util.Arrays;
  */
 public class ForegroundServiceControllerImpl
         implements ForegroundServiceController {
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> origin/aosp-9.0-dev
     // shelf life of foreground services before they go bad
     public static final long FG_SERVICE_GRACE_MILLIS = 5000;
 
@@ -186,6 +190,7 @@ public class ForegroundServiceControllerImpl
     private static class UserServices {
         private String[] mRunning = null;
         private long mServiceStartTime = 0;
+<<<<<<< HEAD
         // package -> sufficiently important posted notification keys
         private ArrayMap<String, ArraySet<String>> mImportantNotifications = new ArrayMap<>(1);
         // package -> standard layout posted notification keys
@@ -194,6 +199,9 @@ public class ForegroundServiceControllerImpl
         // package -> app ops
         private ArrayMap<String, ArraySet<Integer>> mAppOps = new ArrayMap<>(1);
 
+=======
+        private ArrayMap<String, ArraySet<String>> mNotifications = new ArrayMap<>(1);
+>>>>>>> origin/aosp-9.0-dev
         public void setRunningServices(String[] pkgs, long serviceStartTime) {
             mRunning = pkgs != null ? Arrays.copyOf(pkgs, pkgs.length) : null;
             mServiceStartTime = serviceStartTime;

@@ -682,6 +682,15 @@ public class PackageParser {
         pi.mOverlayIsStatic = p.mOverlayIsStatic;
         pi.compileSdkVersion = p.mCompileSdkVersion;
         pi.compileSdkVersionCodename = p.mCompileSdkVersionCodename;
+
+        if (p.mIsStaticOverlay) {
+            pi.overlayFlags |= PackageInfo.FLAG_OVERLAY_STATIC;
+        }
+
+        if (p.mTrustedOverlay) {
+            pi.overlayFlags |= PackageInfo.FLAG_OVERLAY_TRUSTED;
+        }
+
         pi.firstInstallTime = firstInstallTime;
         pi.lastUpdateTime = lastUpdateTime;
         if ((flags&PackageManager.GET_GIDS) != 0) {

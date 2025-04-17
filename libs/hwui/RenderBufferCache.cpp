@@ -15,9 +15,12 @@
  */
 
 #include "RenderBufferCache.h"
+<<<<<<< HEAD
 #include "Debug.h"
 #include "DeviceInfo.h"
 #include "Properties.h"
+=======
+>>>>>>> origin/aosp-9.0-dev
 
 #include <utils/Log.h>
 
@@ -37,18 +40,17 @@ namespace uirenderer {
 #define RENDER_BUFFER_LOGD(...)
 #endif
 
-static uint32_t calculateRboCacheSize() {
-    // TODO: Do we need to use extensions().has4BitStencil() here?
-    // The tuning guide recommends it, but all real devices are configured
-    // with a larger cache than necessary by 4x, so keep the 2x for now regardless
-    return DeviceInfo::multiplyByResolution(2);
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 // Constructors/destructor
 ///////////////////////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 RenderBufferCache::RenderBufferCache() : mSize(0), mMaxSize(calculateRboCacheSize()) {}
+=======
+RenderBufferCache::RenderBufferCache()
+        : mSize(0)
+        , mMaxSize(Properties::renderBufferCacheSize) {}
+>>>>>>> origin/aosp-9.0-dev
 
 RenderBufferCache::~RenderBufferCache() {
     clear();

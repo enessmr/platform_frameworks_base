@@ -32,6 +32,7 @@
 #include <paths.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <dlfcn.h>
 #include <sys/capability.h>
 #include <sys/cdefs.h>
 #include <sys/personality.h>
@@ -50,6 +51,7 @@
 #include <cutils/fs.h>
 #include <cutils/multiuser.h>
 #include <cutils/sched_policy.h>
+#include <cutils/properties.h>
 #include <private/android_filesystem_config.h>
 #include <utils/String8.h>
 #include <selinux/android.h>
@@ -513,6 +515,29 @@ void SetThreadName(const char* thread_name) {
   android::base::SetDefaultTag(buf);
 }
 
+#define JAUNT_LIB "/system/lib/libjaunt.so"
+
+static bool EnableTcg(JNIEnv* env) {
+  char propBuf[PROPERTY_VALUE_MAX];
+  property_get("persist.tcg.mode", propBuf, "global");
+
+  if (strcmp(propBuf, "global") == 0) {
+    return true;
+  }
+
+  if (strcmp(propBuf, "disabled") == 0) {
+    return false;
+  }
+
+  return false;
+}
+
+static void PreloadTcg(void) {
+  if(access(JAUNT_LIB, F_OK) != -1) {
+      dlopen(JAUNT_LIB, RTLD_NOW | RTLD_LOCAL);
+  }
+}
+
 // The list of open zygote file descriptors.
 static FileDescriptorTable* gOpenFdTable = NULL;
 
@@ -681,6 +706,10 @@ static pid_t ForkAndSpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArra
 
     if (!SetRLimits(env, javaRlimits, &error_msg)) {
       fail_fn(error_msg);
+    }
+
+    if (!is_system_server && EnableTcg(env)) {
+      PreloadTcg();
     }
 
     if (use_native_bridge) {

@@ -279,7 +279,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 
 TessellationCache::TessellationCache()
-        : mMaxSize(MB(1))
+        : mMaxSize(Properties::tessellationCacheSize)
         , mCache(LruCache<Description, Buffer*>::kUnlimitedCapacity)
         , mShadowCache(
                   LruCache<ShadowDescription, Task<vertexBuffer_pair_t*>*>::kUnlimitedCapacity) {

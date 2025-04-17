@@ -16,9 +16,12 @@
 #ifndef DEVICEINFO_H
 #define DEVICEINFO_H
 
+<<<<<<< HEAD
 #include <ui/DisplayInfo.h>
 
 #include "Extensions.h"
+=======
+>>>>>>> origin/aosp-9.0-dev
 #include "utils/Macros.h"
 
 namespace android {
@@ -39,13 +42,6 @@ public:
     static void initialize(int maxTextureSize);
 
     int maxTextureSize() const { return mMaxTextureSize; }
-    const DisplayInfo& displayInfo() const { return mDisplayInfo; }
-    const Extensions& extensions() const { return mExtensions; }
-
-    static uint32_t multiplyByResolution(uint32_t in) {
-        auto di = DeviceInfo::get()->displayInfo();
-        return di.w * di.h * in;
-    }
 
     static DisplayInfo queryDisplayInfo();
 
@@ -56,8 +52,6 @@ private:
     void load();
 
     int mMaxTextureSize;
-    DisplayInfo mDisplayInfo;
-    Extensions mExtensions;
 };
 
 } /* namespace uirenderer */

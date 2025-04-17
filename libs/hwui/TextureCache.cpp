@@ -24,7 +24,10 @@
 #include "Texture.h"
 #include "TextureCache.h"
 #include "hwui/Bitmap.h"
+<<<<<<< HEAD
 #include "utils/TraceUtils.h"
+=======
+>>>>>>> origin/aosp-9.0-dev
 
 namespace android {
 namespace uirenderer {
@@ -36,10 +39,18 @@ namespace uirenderer {
 TextureCache::TextureCache()
         : mCache(LruCache<uint32_t, Texture*>::kUnlimitedCapacity)
         , mSize(0)
+<<<<<<< HEAD
         , mMaxSize(DeviceInfo::multiplyByResolution(4 * 6))  // 6 screen-sized RGBA_8888 bitmaps
         , mFlushRate(.4f) {
+=======
+        , mMaxSize(Properties::textureCacheSize)
+        , mFlushRate(Properties::textureCacheFlushRate) {
+>>>>>>> origin/aosp-9.0-dev
     mCache.setOnEntryRemovedListener(this);
-    mMaxTextureSize = DeviceInfo::get()->maxTextureSize();
+
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
+    INIT_LOGD("    Maximum texture dimension is %d pixels", mMaxTextureSize);
+
     mDebugEnabled = Properties::debugLevel & kDebugCaches;
 }
 

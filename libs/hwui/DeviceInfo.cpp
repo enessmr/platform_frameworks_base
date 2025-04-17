@@ -16,10 +16,14 @@
 
 #include <DeviceInfo.h>
 
+<<<<<<< HEAD
 #include "Properties.h"
 
 #include <gui/ISurfaceComposer.h>
 #include <gui/SurfaceComposerClient.h>
+=======
+#include "Extensions.h"
+>>>>>>> origin/aosp-9.0-dev
 
 #include <mutex>
 #include <thread>
@@ -62,12 +66,16 @@ void DeviceInfo::initialize() {
 void DeviceInfo::initialize(int maxTextureSize) {
     std::call_once(sInitializedFlag, [maxTextureSize]() {
         sDeviceInfo = new DeviceInfo();
+<<<<<<< HEAD
         sDeviceInfo->mDisplayInfo = DeviceInfo::queryDisplayInfo();
+=======
+>>>>>>> origin/aosp-9.0-dev
         sDeviceInfo->mMaxTextureSize = maxTextureSize;
     });
 }
 
 void DeviceInfo::load() {
+<<<<<<< HEAD
     mDisplayInfo = queryDisplayInfo();
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
 }
@@ -84,5 +92,10 @@ DisplayInfo DeviceInfo::queryDisplayInfo() {
     return displayInfo;
 }
 
+=======
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
+}
+
+>>>>>>> origin/aosp-9.0-dev
 } /* namespace uirenderer */
 } /* namespace android */

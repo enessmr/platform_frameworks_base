@@ -3174,6 +3174,12 @@ public final class Settings {
                         ColorDisplayController.COLOR_MODE_AUTOMATIC);
 
         /**
+         * The display color mode.
+         * @hide
+         */
+        public static final String DISPLAY_COLOR_MODE = "display_color_mode";
+
+        /**
          * The amount of time in milliseconds before the device goes to sleep or begins
          * to dream after a period of inactivity.  This value is also known as the
          * user activity timeout period since the screen isn't necessarily turned off
@@ -7932,6 +7938,12 @@ public final class Settings {
                 "packages_to_clear_data_before_full_restore";
 
         /**
+         * Whether to include options in power menu for rebooting into recovery or bootloader
+         * @hide
+         */
+        public static final String ADVANCED_REBOOT = "advanced_reboot";
+
+        /**
          * This are the settings to be backed up.
          *
          * NOTE: Settings are backed up and restored in the order they appear
@@ -8719,6 +8731,12 @@ public final class Settings {
          * Whether ADB is enabled.
          */
         public static final String ADB_ENABLED = "adb_enabled";
+
+        /**
+         * String to contain power menu actions
+         * @hide
+         */
+        public static final String POWER_MENU_ACTIONS = "power_menu_actions";
 
         /**
          * Whether Views are allowed to save their attribute data.

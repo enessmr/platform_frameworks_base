@@ -30,71 +30,76 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.net.Uri;
-import android.opengl.Matrix;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings.Secure;
+import android.service.vr.IVrManager;
+import android.service.vr.IVrStateCallbacks;
 import android.util.MathUtils;
 import android.util.Slog;
 import android.view.animation.AnimationUtils;
 
-import com.android.internal.app.ColorDisplayController;
+import com.android.internal.app.NightDisplayController;
 import com.android.server.SystemService;
 import com.android.server.twilight.TwilightListener;
 import com.android.server.twilight.TwilightManager;
 import com.android.server.twilight.TwilightState;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.TimeZone;
 
 import com.android.internal.R;
-
-import static com.android.server.display.DisplayTransformManager.LEVEL_COLOR_MATRIX_NIGHT_DISPLAY;
 
 /**
  * Tints the display at night.
  */
-public final class ColorDisplayService extends SystemService
-        implements ColorDisplayController.Callback {
+public final class NightDisplayServiceCmc623 extends SystemService
+        implements NightDisplayController.Callback {
 
-    private static final String TAG = "ColorDisplayService";
+    private static final String TAG = "NightDisplayServiceCmc623";
 
-    /**
-     * The transition time, in milliseconds, for Night Display to turn on/off.
-     */
-    private static final long TRANSITION_DURATION = 3000L;
-
-    /**
-     * The identity matrix, used if one of the given matrices is {@code null}.
-     */
-    private static final float[] MATRIX_IDENTITY = new float[16];
-    static {
-        Matrix.setIdentityM(MATRIX_IDENTITY, 0);
-    }
-
-    /**
-     * Evaluator used to animate color matrix transitions.
-     */
-    private static final ColorMatrixEvaluator COLOR_MATRIX_EVALUATOR = new ColorMatrixEvaluator();
+    private static final String TEMPERATURE_FILE = "/sys/class/mdnie/mdnie/mdnie_temp";
 
     private final Handler mHandler;
-
-    private float[] mMatrixNight = new float[16];
-
-    private final float[] mColorTempCoefficients = new float[9];
+    private final AtomicBoolean mIgnoreAllColorMatrixChanges = new AtomicBoolean();
+    private final IVrStateCallbacks mVrStateCallbacks = new IVrStateCallbacks.Stub() {
+        @Override
+        public void onVrStateChanged(final boolean enabled) {
+            // Turn off all night mode display stuff while device is in VR mode.
+            mIgnoreAllColorMatrixChanges.set(enabled);
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    final DisplayTransformManager dtm =
+                            getLocalService(DisplayTransformManager.class);
+                    if (enabled) {
+                        setMdnieTemp(false);
+                    } else if (mController != null && mController.isActivated()) {
+                        applyTint(true);
+                    }
+                }
+            });
+        }
+    };
 
     private int mCurrentUser = UserHandle.USER_NULL;
     private ContentObserver mUserSetupObserver;
     private boolean mBootCompleted;
 
-    private ColorDisplayController mController;
-    private ValueAnimator mColorMatrixAnimator;
+    private NightDisplayController mController;
     private Boolean mIsActivated;
     private AutoMode mAutoMode;
 
-    public ColorDisplayService(Context context) {
+    public NightDisplayServiceCmc623(Context context) {
         super(context);
         mHandler = new Handler(Looper.getMainLooper());
     }
@@ -106,6 +111,18 @@ public final class ColorDisplayService extends SystemService
 
     @Override
     public void onBootPhase(int phase) {
+        if (phase >= PHASE_SYSTEM_SERVICES_READY) {
+            final IVrManager vrManager = IVrManager.Stub.asInterface(
+                    getBinderService(Context.VR_SERVICE));
+            if (vrManager != null) {
+                try {
+                    vrManager.registerListener(mVrStateCallbacks);
+                } catch (RemoteException e) {
+                    Slog.e(TAG, "Failed to register VR mode state listener: " + e);
+                }
+            }
+        }
+
         if (phase >= PHASE_BOOT_COMPLETED) {
             mBootCompleted = true;
 
@@ -186,20 +203,8 @@ public final class ColorDisplayService extends SystemService
         Slog.d(TAG, "setUp: currentUser=" + mCurrentUser);
 
         // Create a new controller for the current user and start listening for changes.
-        mController = new ColorDisplayController(getContext(), mCurrentUser);
+        mController = new NightDisplayController(getContext(), mCurrentUser);
         mController.setListener(this);
-
-        // Set the color mode, if valid, and immediately apply the updated tint matrix based on the
-        // existing activated state. This ensures consistency of tint across the color mode change.
-        onDisplayColorModeChanged(mController.getColorMode());
-
-        // Reset the activated state.
-        mIsActivated = null;
-
-        setCoefficientMatrix(getContext(), DisplayTransformManager.needsLinearColorMatrix());
-
-        // Prepare color transformation matrix.
-        setMatrix(mController.getColorTemperature(), mMatrixNight);
 
         // Initialize the current auto mode.
         onAutoModeChanged(mController.getAutoMode());
@@ -208,6 +213,9 @@ public final class ColorDisplayService extends SystemService
         if (mIsActivated == null) {
             onActivated(mController.isActivated());
         }
+
+        // Transition the screen to the current temperature.
+        applyTint(false);
     }
 
     private void tearDown() {
@@ -223,10 +231,7 @@ public final class ColorDisplayService extends SystemService
             mAutoMode = null;
         }
 
-        if (mColorMatrixAnimator != null) {
-            mColorMatrixAnimator.end();
-            mColorMatrixAnimator = null;
-        }
+        mIsActivated = null;
     }
 
     @Override
@@ -253,9 +258,9 @@ public final class ColorDisplayService extends SystemService
             mAutoMode = null;
         }
 
-        if (autoMode == ColorDisplayController.AUTO_MODE_CUSTOM) {
+        if (autoMode == NightDisplayController.AUTO_MODE_CUSTOM) {
             mAutoMode = new CustomAutoMode();
-        } else if (autoMode == ColorDisplayController.AUTO_MODE_TWILIGHT) {
+        } else if (autoMode == NightDisplayController.AUTO_MODE_TWILIGHT) {
             mAutoMode = new TwilightAutoMode();
         }
 
@@ -284,62 +289,13 @@ public final class ColorDisplayService extends SystemService
 
     @Override
     public void onColorTemperatureChanged(int colorTemperature) {
-        setMatrix(colorTemperature, mMatrixNight);
         applyTint(true);
     }
 
     @Override
-<<<<<<< HEAD:services/core/java/com/android/server/display/ColorDisplayService.java
-    public void onDisplayColorModeChanged(int mode) {
-        if (mode == -1) {
-            return;
-        }
-
-        // Cancel the night display tint animator if it's running.
-        if (mColorMatrixAnimator != null) {
-            mColorMatrixAnimator.cancel();
-        }
-
-        setCoefficientMatrix(getContext(), DisplayTransformManager.needsLinearColorMatrix(mode));
-        setMatrix(mController.getColorTemperature(), mMatrixNight);
-
-        final DisplayTransformManager dtm = getLocalService(DisplayTransformManager.class);
-        dtm.setColorMode(mode, (mIsActivated != null && mIsActivated) ? mMatrixNight
-                : MATRIX_IDENTITY);
-    }
-
-    @Override
-    public void onAccessibilityTransformChanged(boolean state) {
-        onDisplayColorModeChanged(mController.getColorMode());
-    }
-
-    /**
-     * Set coefficients based on whether the color matrix is linear or not.
-     */
-    private void setCoefficientMatrix(Context context, boolean needsLinear) {
-        final String[] coefficients = context.getResources().getStringArray(needsLinear
-                ? R.array.config_nightDisplayColorTemperatureCoefficients
-                : R.array.config_nightDisplayColorTemperatureCoefficientsNative);
-=======
     public void onDisplayColorModeChanged(int colorMode) {
-        final DisplayTransformManager dtm = getLocalService(DisplayTransformManager.class);
-        dtm.setColorMode(colorMode);
-
-        setCoefficientMatrix(getContext());
-        setMatrix(mController.getColorTemperature(), mMatrixNight);
         if (mController.isActivated()) {
             applyTint(true);
-        }
-    }
-
-    private void setCoefficientMatrix(Context context) {
-        final boolean isNative = DisplayTransformManager.isNativeModeEnabled();
-        final String[] coefficients = context.getResources().getStringArray(isNative ?
-            R.array.config_nightDisplayColorTemperatureCoefficientsNative
-            : R.array.config_nightDisplayColorTemperatureCoefficients);
->>>>>>> origin/aosp-9.0-dev:services/core/java/com/android/server/display/NightDisplayService.java
-        for (int i = 0; i < 9 && i < coefficients.length; i++) {
-            mColorTempCoefficients[i] = Float.parseFloat(coefficients[i]);
         }
     }
 
@@ -349,78 +305,34 @@ public final class ColorDisplayService extends SystemService
      * @param immediate {@code true} skips transition animation
      */
     private void applyTint(boolean immediate) {
-        // Cancel the old animator if still running.
-        if (mColorMatrixAnimator != null) {
-            mColorMatrixAnimator.cancel();
-        }
-
-        final DisplayTransformManager dtm = getLocalService(DisplayTransformManager.class);
-        final float[] from = dtm.getColorMatrix(LEVEL_COLOR_MATRIX_NIGHT_DISPLAY);
-        final float[] to = mIsActivated ? mMatrixNight : MATRIX_IDENTITY;
-
-        if (immediate) {
-            dtm.setColorMatrix(LEVEL_COLOR_MATRIX_NIGHT_DISPLAY, to);
-        } else {
-            mColorMatrixAnimator = ValueAnimator.ofObject(COLOR_MATRIX_EVALUATOR,
-                    from == null ? MATRIX_IDENTITY : from, to);
-            mColorMatrixAnimator.setDuration(TRANSITION_DURATION);
-            mColorMatrixAnimator.setInterpolator(AnimationUtils.loadInterpolator(
-                    getContext(), android.R.interpolator.fast_out_slow_in));
-            mColorMatrixAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animator) {
-                    final float[] value = (float[]) animator.getAnimatedValue();
-                    dtm.setColorMatrix(LEVEL_COLOR_MATRIX_NIGHT_DISPLAY, value);
-                }
-            });
-            mColorMatrixAnimator.addListener(new AnimatorListenerAdapter() {
-
-                private boolean mIsCancelled;
-
-                @Override
-                public void onAnimationCancel(Animator animator) {
-                    mIsCancelled = true;
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animator) {
-                    if (!mIsCancelled) {
-                        // Ensure final color matrix is set at the end of the animation. If the
-                        // animation is cancelled then don't set the final color matrix so the new
-                        // animator can pick up from where this one left off.
-                        dtm.setColorMatrix(LEVEL_COLOR_MATRIX_NIGHT_DISPLAY, to);
-                    }
-                    mColorMatrixAnimator = null;
-                }
-            });
-            mColorMatrixAnimator.start();
-        }
-    }
-
-    /**
-     * Set the color transformation {@code MATRIX_NIGHT} to the given color temperature.
-     *
-     * @param colorTemperature color temperature in Kelvin
-     * @param outTemp          the 4x4 display transformation matrix for that color temperature
-     */
-    private void setMatrix(int colorTemperature, float[] outTemp) {
-        if (outTemp.length != 16) {
-            Slog.d(TAG, "The display transformation matrix must be 4x4");
+        // Don't do any color matrix change animations if we are ignoring them anyway.
+        if (mIgnoreAllColorMatrixChanges.get()) {
             return;
         }
 
-        Matrix.setIdentityM(mMatrixNight, 0);
+        setMdnieTemp(mController.isActivated());
+    }
 
-        final float squareTemperature = colorTemperature * colorTemperature;
-        final float red = squareTemperature * mColorTempCoefficients[0]
-                + colorTemperature * mColorTempCoefficients[1] + mColorTempCoefficients[2];
-        final float green = squareTemperature * mColorTempCoefficients[3]
-                + colorTemperature * mColorTempCoefficients[4] + mColorTempCoefficients[5];
-        final float blue = squareTemperature * mColorTempCoefficients[6]
-                + colorTemperature * mColorTempCoefficients[7] + mColorTempCoefficients[8];
-        outTemp[0] = red;
-        outTemp[5] = green;
-        outTemp[10] = blue;
+    private void setMdnieTemp(boolean on) {
+        // /sys/class/mdnie/mdnie/mdnie_temp
+        //
+        // TEMP_STANDARD =0,
+        // TEMP_WARM,
+        // TEMP_COLD,
+        // MAX_TEMP_MODE,
+        
+        try {
+            FileOutputStream fos = new FileOutputStream(TEMPERATURE_FILE);
+            byte[] bytes = new byte[2];
+            bytes[0] = (byte)(on ? '1' : '0');
+            bytes[1] = '\n';
+            fos.write(bytes);
+            fos.close();
+        } catch (FileNotFoundException fnfex) {
+            Slog.e(TAG, "", fnfex);
+        } catch (IOException ioex) {
+            Slog.e(TAG, "", ioex);
+        }
     }
 
     /**
@@ -453,7 +365,7 @@ public final class ColorDisplayService extends SystemService
         return ldt.isBefore(compareTime) ? ldt.plusDays(1) : ldt;
     }
 
-    private abstract class AutoMode implements ColorDisplayController.Callback {
+    private abstract class AutoMode implements NightDisplayController.Callback {
         public abstract void onStart();
 
         public abstract void onStop();
@@ -496,7 +408,6 @@ public final class ColorDisplayService extends SystemService
             if (mIsActivated == null || mIsActivated != activate) {
                 mController.setActivated(activate);
             }
-
             updateNextAlarm(mIsActivated, now);
         }
 
@@ -580,6 +491,7 @@ public final class ColorDisplayService extends SystemService
                 final LocalDateTime now = LocalDateTime.now();
                 final LocalDateTime sunrise = state.sunrise();
                 final LocalDateTime sunset = state.sunset();
+
                 // Maintain the existing activated state if within the current period.
                 if (lastActivatedTime.isBefore(now) && (lastActivatedTime.isBefore(sunrise)
                         ^ lastActivatedTime.isBefore(sunset))) {
@@ -614,25 +526,6 @@ public final class ColorDisplayService extends SystemService
             Slog.d(TAG, "onTwilightStateChanged: isNight="
                     + (state == null ? null : state.isNight()));
             updateActivated(state);
-        }
-    }
-
-    /**
-     * Interpolates between two 4x4 color transform matrices (in column-major order).
-     */
-    private static class ColorMatrixEvaluator implements TypeEvaluator<float[]> {
-
-        /**
-         * Result matrix returned by {@link #evaluate(float, float[], float[])}.
-         */
-        private final float[] mResultMatrix = new float[16];
-
-        @Override
-        public float[] evaluate(float fraction, float[] startValue, float[] endValue) {
-            for (int i = 0; i < mResultMatrix.length; i++) {
-                mResultMatrix[i] = MathUtils.lerp(startValue[i], endValue[i], fraction);
-            }
-            return mResultMatrix;
         }
     }
 }

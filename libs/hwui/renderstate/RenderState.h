@@ -110,7 +110,7 @@ public:
     Scissor& scissor() { return *mScissor; }
     Stencil& stencil() { return *mStencil; }
 
-    OffscreenBufferPool& layerPool() { return *mLayerPool; }
+    OffscreenBufferPool& layerPool() { return mLayerPool; }
 
     GrContext* getGrContext() const;
 
@@ -132,7 +132,7 @@ private:
     Scissor* mScissor = nullptr;
     Stencil* mStencil = nullptr;
 
-    OffscreenBufferPool* mLayerPool = nullptr;
+    OffscreenBufferPool mLayerPool;
 
     std::set<Layer*> mActiveLayers;
     std::set<DeferredLayerUpdater*> mActiveLayerUpdaters;

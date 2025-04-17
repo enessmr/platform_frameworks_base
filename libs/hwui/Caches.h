@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "DeviceInfo.h"
 #include "Extensions.h"
 #include "FboCache.h"
 #include "GammaFontRenderer.h"
@@ -141,6 +140,10 @@ public:
     // Misc
     GLint maxTextureSize;
 
+private:
+    // Declared before gradientCache and programCache which need this to initialize.
+    // TODO: cleanup / move elsewhere
+    Extensions mExtensions;
 public:
     TextureCache textureCache;
     RenderBufferCache renderBufferCache;
@@ -166,7 +169,7 @@ public:
     void setProgram(const ProgramDescription& description);
     void setProgram(Program* program);
 
-    const Extensions& extensions() const { return DeviceInfo::get()->extensions(); }
+    const Extensions& extensions() const { return mExtensions; }
     Program& program() { return *mProgram; }
     PixelBufferState& pixelBufferState() { return *mPixelBufferState; }
     TextureState& textureState() { return *mTextureState; }
